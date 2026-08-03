@@ -29,7 +29,10 @@ app.post('/', async (req, res) => {
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];
     const messages = change?.value?.messages;
-
+    
+console.log('Field:', change?.field, '| Has messages:', !!messages, '| Msg type:', messages?.[0]?.type);
+console.log('Full payload:', JSON.stringify(req.body, null, 2));
+    
     if (!messages) return;
 
     for (const msg of messages) {
