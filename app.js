@@ -35,22 +35,27 @@ console.log('Full payload:', JSON.stringify(req.body, null, 2));
     
     if (!messages) return;
 
-    for (const msg of messages) {
-      if (msg.type === 'image') {
-        const { buffer, mimeType } = await downloadMedia(msg.image.id);
-        await forwardToApp({
-          type: 'image',
-          from: msg.from,
-          buffer,
-          mimeType,
-          caption: msg.image.caption
-        });
-      }
-    }
-  } catch (err) {
-    console.error('Error processing webhook:', err);
+   for (const msg of messages) {
+  if (msg.type === 'image') {
+    const { buffer, mimeType } = await downloadMedia(msg.image.id);
+    await forwardToApp({
+      type: 'image',
+      from: msg.from,
+      buffer,
+      mimeType,
+      caption: msg.image.caption
+    });
+  } else if (msg.type === 'document') {
+    const { buffer, mimeType } = await downloadMedia(msg.document.id);
+    await forwardToApp({
+      type: 'image', // still treat as an image for Base44's purposes
+      from: msg.from,
+      buffer,
+      mimeType,
+      caption: msg.document.filename // no caption field on documents, use filename instead
+    });
   }
-});
+}
 
 async function downloadMedia(mediaId) {
   const metaRes = await fetch(
