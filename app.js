@@ -74,20 +74,26 @@ async function downloadMedia(mediaId) {
 }
 
 async function forwardToApp(payload) {
-  await fetch(process.env.BASE44_FUNCTION_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-webhook-secret': process.env.RENDER_SHARED_SECRET
-    },
-    body: JSON.stringify({
-      type: payload.type,
-      from: payload.from,
-      imageBase64: payload.buffer.toString('base64'),
-      mimeType: payload.mimeType,
-      caption: payload.caption
-    })
-  });
+  try {
+    const res = await fetch(process.env.BASE44_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': process.env.RENDER_SHARED_SECRET
+      },
+      body: JSON.stringify({
+        type: payload.type,
+        from: payload.from,
+        imageBase64: payload.buffer.toString('base64'),
+        mimeType: payload.mimeType,
+        caption: payload.caption
+      })
+    });
+    const text = await res.text();
+    console.log('Base44 response status:', res.status, '| body:', text);
+  } catch (err) {
+    console.error('forwardToApp failed:', err.message);
+  }
 }
 
 // Start the server
