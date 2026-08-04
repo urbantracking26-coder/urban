@@ -29,33 +29,36 @@ app.post('/', async (req, res) => {
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0];
     const messages = change?.value?.messages;
-    
-console.log('Field:', change?.field, '| Has messages:', !!messages, '| Msg type:', messages?.[0]?.type);
-console.log('Full payload:', JSON.stringify(req.body, null, 2));
-    
+
+    console.log('Field:', change?.field, '| Has messages:', !!messages, '| Msg type:', messages?.[0]?.type);
+
     if (!messages) return;
 
-   for (const msg of messages) {
-  if (msg.type === 'image') {
-    const { buffer, mimeType } = await downloadMedia(msg.image.id);
-    await forwardToApp({
-      type: 'image',
-      from: msg.from,
-      buffer,
-      mimeType,
-      caption: msg.image.caption
-    });
-  } else if (msg.type === 'document') {
-    const { buffer, mimeType } = await downloadMedia(msg.document.id);
-    await forwardToApp({
-      type: 'image', // still treat as an image for Base44's purposes
-      from: msg.from,
-      buffer,
-      mimeType,
-      caption: msg.document.filename // no caption field on documents, use filename instead
-    });
+    for (const msg of messages) {
+      if (msg.type === 'image') {
+        const { buffer, mimeType } = await downloadMedia(msg.image.id);
+        await forwardToApp({
+          type: 'image',
+          from: msg.from,
+          buffer,
+          mimeType,
+          caption: msg.image.caption
+        });
+      } else if (msg.type === 'document') {
+        const { buffer, mimeType } = await downloadMedia(msg.document.id);
+        await forwardToApp({
+          type: 'image',
+          from: msg.from,
+          buffer,
+          mimeType,
+          caption: msg.document.filename
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error processing webhook:', err);
   }
-}
+});
 
 async function downloadMedia(mediaId) {
   const metaRes = await fetch(
